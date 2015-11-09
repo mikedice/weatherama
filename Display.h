@@ -10,6 +10,7 @@
 #define BACKGROUND_COLOR ST7735_BLACK
 #define TEXT_COLOR ST7735_GREEN
 #define TEXT_SIZE 2
+#define LINE_BUFFER_SIZE 12
 #define SCREEN_ROTATION 1
 #define TFT_CS     10
 #define TFT_RST    8
@@ -26,6 +27,15 @@ public:
     void printTempOnLcd(double temp, int16_t x, int16_t y);
     void printPressureOnLcd(double pressure, int16_t x, int16_t y);
     void printAltitudeOnLcd(double altitude, int16_t x, int16_t y);
+    
 private:
+    void fillInAndPrint(unsigned char* buffer, int contentSize, int16_t x, int16_t y);
+    int bufferFloat(double number, unsigned char* buffer, int index, uint8_t digits);
     Adafruit_ST7735 tft; 
+};
+
+struct DateStringEntry
+{
+    const char* pString;
+    uint16_t length;
 };
