@@ -54,7 +54,7 @@ bool Display::printTimeOnLcd(DateTime& cur, int16_t x, int16_t y)
 
     // we can have 12 characters
     unsigned char buffer[LINE_BUFFER_SIZE] = { 0 };
-    int index = 0;
+    uint16_t index = 0;
     uint8_t hour = 0;
 
     // AM/PM calculation
@@ -67,41 +67,15 @@ bool Display::printTimeOnLcd(DateTime& cur, int16_t x, int16_t y)
         hour = cur.hours;
     }
 
-    if (hour < 10)
-    {
-        buffer[index++] = hour + '0';
-    }
-    else
-    {
-        buffer[index++] = (hour / 10) + '0';
-        buffer[index++] = (hour % 10) + '0';
-    }
+    index = bufferInt(hour, buffer, index, false);
 
     buffer[index++] = ':';
 
-    if (cur.minutes < 10)
-    {
-        buffer[index++] = '0';
-        buffer[index++] = cur.minutes + '0';
-    }
-    else
-    {
-        buffer[index++] = (cur.minutes / 10) + '0';
-        buffer[index++] = (cur.minutes % 10) + '0';
-    }
+    index = bufferInt(cur.minutes, buffer, index, true);
 
     buffer[index++] = ':';
 
-    if (cur.seconds < 10)
-    {
-        buffer[index++] = '0';
-        buffer[index++] = cur.seconds + '0';
-    }
-    else
-    {
-        buffer[index++] = (cur.seconds / 10) + '0';
-        buffer[index++] = (cur.seconds % 10) + '0';
-    }
+    index = bufferInt(cur.seconds, buffer, index, true);
 
     buffer[index++] = ' ';
 
@@ -130,25 +104,21 @@ bool Display::printDateOnLcd(DateTime& cur, int16_t x, int16_t y)
     unsigned char buffer[LINE_BUFFER_SIZE] = { 0 };
     int index = 0;
 
+    // Day of week gets printed on it's own line
     memcpy(buffer, DaysOfWeek[cur.wday - 1].pString, DaysOfWeek[cur.wday - 1].length);
     fillInAndPrint(buffer, DaysOfWeek[cur.wday - 1].length, x, y);
 
     y += LINE_HEIGHT;
     tft.setCursor(x, y);
 
-    memset(buffer, 0, sizeof(buffer) / sizeof(buffer[0]));
+    // Make a new line for the date
+    memset(buffer, 0, sizeof(unsigned char) * LINE_BUFFER_SIZE);
     memcpy(buffer, MonthsOfYear[cur.month - 1].pString, MonthsOfYear[cur.month - 1].length);
     index = 3;
+
     buffer[index++] = ' ';
-    if (cur.day < 10)
-    {
-        buffer[index++] = '0' + cur.day;
-    }
-    else
-    {
-        buffer[index++] = '0' + (cur.day / 10);
-        buffer[index++] = '0' + (cur.day % 10);
-    }
+
+    index = bufferInt(cur.day, buffer, index, false);
 
     buffer[index++] = ' ';
 
@@ -167,7 +137,6 @@ bool Display::printDateOnLcd(DateTime& cur, int16_t x, int16_t y)
     tempYear -= (tempYear / 10) * 10;
 
     buffer[index++] = '0' + tempYear % 10;
-
     fillInAndPrint(buffer, index, x, y);
 }
 
@@ -217,7 +186,7 @@ void Display::printAltitudeOnLcd(double altitude, int16_t x, int16_t y)
     tft.print(altitude, 1);
 }
 
-void Display::fillInAndPrint(unsigned char* buffer, int contentSize, int16_t x, int16_t y)
+void Display::fillInAndPrint(unsigned char* buffer, uint16_t contentSize, int16_t x, int16_t y)
 {
     // fill in with spaces
     for (int i = contentSize; i < LINE_BUFFER_SIZE; i++)
@@ -231,6 +200,24 @@ void Display::fillInAndPrint(unsigned char* buffer, int contentSize, int16_t x, 
         tft.drawChar(x, y, buffer[i], TEXT_COLOR, BACKGROUND_COLOR, TEXT_SIZE);
         x += TEXT_SIZE * 6;
     }
+}
+
+int Display::bufferInt(uint8_t number, unsigned char* buffer, int index, bool leadingZero)
+{
+    if (number < 10)
+    {
+        if (leadingZero)
+        {
+            buffer[index++] = '0';
+        }
+        buffer[index++] = number + '0';
+    }
+    else
+    {
+        buffer[index++] = (number / 10) + '0';
+        buffer[index++] = (number % 10) + '0';
+    }
+    return index;
 }
 
 int Display::bufferFloat(double number, unsigned char* buffer, int index, uint8_t digits)

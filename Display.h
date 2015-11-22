@@ -12,10 +12,12 @@
 #define TEXT_SIZE 2
 #define LINE_BUFFER_SIZE 12
 #define SCREEN_ROTATION 1
-#define TFT_CS     10
-#define TFT_RST    8
-#define TFT_DC     9
-
+//#define TFT_CS     10
+//#define TFT_RST    8
+//#define TFT_DC     9
+#define TFT_CS     53
+#define TFT_RST    48
+#define TFT_DC     49
 
 class Display
 {
@@ -29,8 +31,9 @@ public:
     void printAltitudeOnLcd(double altitude, int16_t x, int16_t y);
     
 private:
-    void fillInAndPrint(unsigned char* buffer, int contentSize, int16_t x, int16_t y);
+    void fillInAndPrint(unsigned char* buffer, uint16_t contentSize, int16_t x, int16_t y);
     int bufferFloat(double number, unsigned char* buffer, int index, uint8_t digits);
+    int bufferInt(uint8_t number, unsigned char* buffer, int index, bool leadingZero);
     Adafruit_ST7735 tft; 
 };
 
